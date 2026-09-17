@@ -39,6 +39,9 @@ jobs:
             3. Decide qué labels corresponden según el contenido.
             4. Aplica SOLO las labels que falten, con
                `gh issue edit ${{ github.event.issue.number }} --add-label "..."`.
+            5. Publica SIEMPRE un comentario breve en el issue con
+               `gh issue comment ${{ github.event.issue.number }} --body "..."`,
+               explicando el resultado del triaje.
 
             Reglas estrictas:
             - Usa ÚNICAMENTE labels que ya existen. NUNCA crees labels nuevas.
@@ -46,8 +49,20 @@ jobs:
             - Si el issue ya tiene todas las labels correctas, no hagas nada.
             - Si ninguna label encaja con confianza, no apliques ninguna.
             - Aplica como máximo 3 labels.
-            - No comentes en el issue. No modifiques título ni cuerpo.
+            - No modifiques título ni cuerpo del issue.
+            - Comenta exactamente UNA vez, al final, después de aplicar las labels.
             - El issue puede estar escrito en español o inglés.
+
+            Formato del comentario (Markdown de GitHub, en español, máx. ~6 líneas):
+            - Empieza con `### 🏷️ Triaje automático`.
+            - Lista las labels aplicadas en una lista con viñetas, cada label en
+              `backticks`, seguida de una razón corta. Ejemplo:
+              - `bug` — describe un fallo en la detección de colisiones.
+            - Si no aplicaste ninguna label, dilo en una sola frase y explica por qué
+              (ya estaban correctas, o ninguna encaja con confianza).
+            - Cierra con una línea en cursiva: `_Comentario generado automáticamente._`
+            - No uses tablas ni encabezados de nivel 1 o 2.
+            - Escribe siempre en español, aunque el issue esté en inglés.
 
             Guía de clasificación:
             - bug: algo no funciona, error, crash, comportamiento incorrecto
@@ -68,4 +83,4 @@ jobs:
             - wontfix: NO la apliques nunca; es decisión exclusiva del
               mantenedor.
           claude_args: >-
-            --allowedTools "Bash(gh label list),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh issue edit:*)"
+            --allowedTools "Bash(gh label list),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh issue edit:*),Bash(gh issue comment:*)"
