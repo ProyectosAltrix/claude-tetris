@@ -1,0 +1,71 @@
+name: Claude Issue Labeler
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write # necesario para aplicar labels
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Issue Labeler
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Eres el triador de issues del repositorio ${{ github.repository }},
+            un juego de Tetris en JavaScript vanilla (HTML5 Canvas, sin
+            dependencias ni build).
+
+            Tarea: clasificar el issue #${{ github.event.issue.number }}.
+
+            Pasos:
+            1. Ejecuta `gh label list` para obtener las labels disponibles.
+            2. Ejecuta `gh issue view ${{ github.event.issue.number }}
+               --json title,body,labels` para leer el issue y las labels que
+               ya tiene.
+            3. Decide qué labels corresponden según el contenido.
+            4. Aplica SOLO las labels que falten, con
+               `gh issue edit ${{ github.event.issue.number }} --add-label "..."`.
+
+            Reglas estrictas:
+            - Usa ÚNICAMENTE labels que ya existen. NUNCA crees labels nuevas.
+            - NUNCA quites una label existente. Solo añade.
+            - Si el issue ya tiene todas las labels correctas, no hagas nada.
+            - Si ninguna label encaja con confianza, no apliques ninguna.
+            - Aplica como máximo 3 labels.
+            - No comentes en el issue. No modifiques título ni cuerpo.
+            - El issue puede estar escrito en español o inglés.
+
+            Guía de clasificación:
+            - bug: algo no funciona, error, crash, comportamiento incorrecto
+              del juego (colisiones, rotación, puntuación, game over).
+            - enhancement: pide una funcionalidad o mejora nueva
+              (hold piece, sonido, high scores, móvil, modo oscuro...).
+            - documentation: sobre el README, comentarios o instrucciones.
+            - question: pregunta o duda de uso, no reporta fallo ni pide feature.
+            - accessibility: contraste, daltonismo, lector de pantalla,
+              navegación por teclado, motion sickness.
+            - good first issue: cambio pequeño y autocontenido, apto para
+              alguien nuevo (ajustar una constante, un color, un texto).
+            - help wanted: requiere conocimiento o esfuerzo que el mantenedor
+              pide explícitamente.
+            - duplicate: repite un issue ya existente (búscalo con
+              `gh issue list` si lo sospechas).
+            - invalid: spam, vacío, sin sentido o fuera del alcance del repo.
+            - wontfix: NO la apliques nunca; es decisión exclusiva del
+              mantenedor.
+          claude_args: >-
+            --allowedTools "Bash(gh label list),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh issue edit:*)"
